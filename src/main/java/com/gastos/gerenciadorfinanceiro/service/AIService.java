@@ -19,7 +19,7 @@ public class AIService {
 
     private final RestTemplate restTemplate;
     private final String apiKey;
-    private final String geminiUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=";
+    private final String geminiUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=";
 
     public AIService(RestTemplate restTemplate, @Value("${google.gemini.api.key}") String apiKey) {
         this.restTemplate = restTemplate;
