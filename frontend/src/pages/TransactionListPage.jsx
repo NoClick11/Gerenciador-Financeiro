@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import TransactionForm from '../components/TransactionForm';
+import BalanceDisplay from '../components/BalanceDisplay'; // 1. IMPORTAR o novo componente
 
 function TransactionListPage() {
   const [transactions, setTransactions] = useState([]);
@@ -14,22 +15,18 @@ function TransactionListPage() {
         console.error("Erro ao buscar transações:", error);
       }
     };
-
     fetchTransactions();
   }, []);
-
+  
   const handleDelete = async (id) => {
-    try {
+     try {
       const response = await fetch(`http://localhost:8080/api/transactions/${id}`, {
         method: 'DELETE',
       });
-
       if (response.ok) {
-
         setTransactions(currentTransactions =>
           currentTransactions.filter(transaction => transaction.id !== id)
         );
-        console.log(`Transação com id ${id} deletada com sucesso!`);
       } else {
         throw new Error('Falha ao deletar a transação');
       }
@@ -38,9 +35,23 @@ function TransactionListPage() {
     }
   };
 
+  const totalIncome = transactions
+    .filter(t => t.type === 'INCOME')
+    .reduce((acc, transaction) => acc + parseFloat(transaction.amount), 0);
+
+  const totalExpense = transactions
+    .filter(t => t.type === 'EXPENSE')
+    .reduce((acc, transaction) => acc + parseFloat(transaction.amount), 0);
+
+  const balance = totalIncome - totalExpense;
+
   return (
     <div>
       <h1>Gerenciador Financeiro</h1>
+      
+      {}
+      <BalanceDisplay income={totalIncome} expense={totalExpense} balance={balance} />
+
       <TransactionForm />
       <hr />
       <h2>Lista de Transações</h2>
@@ -51,8 +62,6 @@ function TransactionListPage() {
             <span> {transaction.description} </span> |
             <span>{transaction.type}</span> |
             <strong> R$ {transaction.amount}</strong>
-            {}
-            {}
             <button onClick={() => handleDelete(transaction.id)} style={{ marginLeft: '10px' }}>
               X
             </button>

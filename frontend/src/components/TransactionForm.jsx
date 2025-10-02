@@ -1,17 +1,17 @@
 import { useState } from 'react';
 
-function TransactionForm() {
+function TransactionForm({ onTransactionAdded }) {
   const [description, setDescription] = useState('');
   const [amount, setAmount] = useState('');
-  const [type, setType] = useState('EXPENSE'); 
+  const [type, setType] = useState('EXPENSE');
 
   const handleSubmit = async (event) => {
     event.preventDefault();
 
     const newTransaction = {
-      description: description,
-      amount: amount,
-      type: type,
+      description,
+      amount,
+      type,
     };
 
     try {
@@ -27,13 +27,16 @@ function TransactionForm() {
         throw new Error('Erro ao criar a transação');
       }
 
+      const createdTransaction = await response.json();
+
+      onTransactionAdded(createdTransaction);
+
       console.log('Transação criada com sucesso!');
+      
+
       setDescription('');
       setAmount('');
       setType('EXPENSE');
-      
-
-      window.location.reload();
 
     } catch (error) {
       console.error("Houve um erro ao enviar o formulário:", error);
@@ -42,25 +45,15 @@ function TransactionForm() {
 
   return (
     <form onSubmit={handleSubmit}>
+      {}
       <h3>Adicionar Nova Transação</h3>
       <div>
         <label>Descrição: </label>
-        <input
-          type="text"
-          value={description}
-          onChange={e => setDescription(e.target.value)}
-          required
-        />
+        <input type="text" value={description} onChange={e => setDescription(e.target.value)} required />
       </div>
       <div>
         <label>Valor (R$): </label>
-        <input
-          type="number"
-          step="0.01"
-          value={amount}
-          onChange={e => setAmount(e.target.value)}
-          required
-        />
+        <input type="number" step="0.01" value={amount} onChange={e => setAmount(e.target.value)} required />
       </div>
       <div>
         <label>Tipo: </label>
