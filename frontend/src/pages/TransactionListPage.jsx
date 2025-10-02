@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import TransactionForm from '../components/TransactionForm';
-import BalanceDisplay from '../components/BalanceDisplay'; // 1. IMPORTAR o novo componente
+import BalanceDisplay from '../components/BalanceDisplay';
 
 function TransactionListPage() {
   const [transactions, setTransactions] = useState([]);
@@ -19,7 +19,7 @@ function TransactionListPage() {
   }, []);
   
   const handleDelete = async (id) => {
-     try {
+    try {
       const response = await fetch(`http://localhost:8080/api/transactions/${id}`, {
         method: 'DELETE',
       });
@@ -35,6 +35,10 @@ function TransactionListPage() {
     }
   };
 
+  const handleTransactionAdded = (newTransaction) => {
+    setTransactions(currentTransactions => [...currentTransactions, newTransaction]);
+  };
+
   const totalIncome = transactions
     .filter(t => t.type === 'INCOME')
     .reduce((acc, transaction) => acc + parseFloat(transaction.amount), 0);
@@ -48,11 +52,11 @@ function TransactionListPage() {
   return (
     <div>
       <h1>Gerenciador Financeiro</h1>
-      
-      {}
       <BalanceDisplay income={totalIncome} expense={totalExpense} balance={balance} />
 
-      <TransactionForm />
+      {}
+      <TransactionForm onTransactionAdded={handleTransactionAdded} />
+      
       <hr />
       <h2>Lista de Transações</h2>
       <ul>
