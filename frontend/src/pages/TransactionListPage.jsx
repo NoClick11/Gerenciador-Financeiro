@@ -1,4 +1,6 @@
+
 import { useState, useEffect } from 'react';
+import TransactionForm from '../components/TransactionForm';
 
 function TransactionListPage() {
 
@@ -8,6 +10,7 @@ function TransactionListPage() {
   useEffect(() => {
     const fetchTransactions = async () => {
       try {
+
         const response = await fetch('http://localhost:8080/api/transactions');
         const data = await response.json();
         setTransactions(data);
@@ -21,12 +24,23 @@ function TransactionListPage() {
 
   return (
     <div>
+      <h1>Gerenciador Financeiro</h1>
+
+      {}
+      <TransactionForm />
+
+      <hr /> {}
+
       <h2>Lista de Transações</h2>
       <ul>
         {}
         {transactions.map(transaction => (
           <li key={transaction.id}>
-            {transaction.date} | {transaction.description} | {transaction.type} | R$ {transaction.amount}
+            {}
+            <span>{transaction.date}</span> | 
+            <span> {transaction.description} </span> | 
+            <span>{transaction.type}</span> | 
+            <strong> R$ {transaction.amount}</strong>
           </li>
         ))}
       </ul>
