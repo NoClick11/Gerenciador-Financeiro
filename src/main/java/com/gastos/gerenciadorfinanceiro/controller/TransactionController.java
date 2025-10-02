@@ -3,10 +3,12 @@ package com.gastos.gerenciadorfinanceiro.controller;
 import com.gastos.gerenciadorfinanceiro.dto.CreateTransactionDTO;
 import com.gastos.gerenciadorfinanceiro.model.Transaction;
 import com.gastos.gerenciadorfinanceiro.repository.TransactionRepository;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/transactions")
@@ -41,6 +43,27 @@ public class TransactionController {
         transactionRepository.deleteById(id);
         return ResponseEntity.noContent().build();
     }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<Transaction> updateTransaction(@PathVariable Long id, @RequestBody CreateTransactionDTO dto) {
+        Optional<Transaction> optionalTransaction = transactionRepository.findById(id);
+
+        if (optionalTransaction.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        Transaction existingTransaction = optionalTransaction.get();
+
+        existingTransaction.setDescription(dto.description());
+        existingTransaction.setAmount(dto.amount());
+        existingTransaction.setType(dto.type());
+
+        Transaction updatedTransaction = transactionRepository.save(existingTransaction);
+
+        return ResponseEntity.ok(updatedTransaction);
+
+    }
+
 
 
 }
