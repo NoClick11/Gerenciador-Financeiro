@@ -18,14 +18,18 @@ public class Transaction {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    Long id;
+    private Long id;
 
     String description;
-    BigDecimal amount;
+    private BigDecimal amount;
 
     @CreationTimestamp
-    LocalDate date;
+    private LocalDate date;
 
     @Enumerated(EnumType.STRING)
-    TransactionType type;
+    private TransactionType type;
+
+    @ManyToOne
+    @JoinColumn(name = "user_id")
+    private User user;
 }
