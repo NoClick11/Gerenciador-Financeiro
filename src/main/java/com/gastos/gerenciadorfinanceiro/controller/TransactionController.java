@@ -25,7 +25,6 @@ public class TransactionController {
 
     @GetMapping
     public ResponseEntity<List<Transaction>> getAllTransactions(@AuthenticationPrincipal User user) {
-        // Busca apenas as transações do usuário que está logado
         List<Transaction> transactions = transactionRepository.findAllByUser(user);
         return ResponseEntity.ok(transactions);
     }
@@ -36,7 +35,7 @@ public class TransactionController {
         transaction.setDescription(dto.description());
         transaction.setAmount(dto.amount());
         transaction.setType(dto.type());
-        transaction.setUser(user); // Associa a nova transação ao usuário logado
+        transaction.setUser(user);
 
         Transaction savedTransaction = transactionRepository.save(transaction);
         return ResponseEntity.status(HttpStatus.CREATED).body(savedTransaction);
@@ -53,7 +52,7 @@ public class TransactionController {
         Transaction existingTransaction = optionalTransaction.get();
 
         if (!existingTransaction.getUser().getId().equals(user.getId())) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build(); // Retorna 403 Proibido
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
 
         existingTransaction.setDescription(dto.description());
