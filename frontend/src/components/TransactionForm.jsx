@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { authenticatedFetch } from '../services/api';
 
 function TransactionForm({ onTransactionAdded }) {
   const [description, setDescription] = useState('');
@@ -15,14 +16,10 @@ function TransactionForm({ onTransactionAdded }) {
     };
 
     try {
-      const response = await fetch('http://localhost:8080/api/transactions', {
+      const response = await authenticatedFetch('http://localhost:8080/api/transactions', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
         body: JSON.stringify(newTransaction),
       });
-
       if (!response.ok) {
         throw new Error('Erro ao criar a transação');
       }

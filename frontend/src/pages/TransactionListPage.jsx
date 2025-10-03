@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import TransactionForm from "../components/TransactionForm";
 import BalanceDisplay from "../components/BalanceDisplay";
 import TransactionChart from "../components/TransactionChart";
+import { authenticatedFetch } from '../services/api';
 
 function TransactionListPage() {
   const [transactions, setTransactions] = useState([]);
@@ -11,7 +12,7 @@ function TransactionListPage() {
   useEffect(() => {
     const fetchTransactions = async () => {
       try {
-        const response = await fetch("http://localhost:8080/api/transactions");
+        const response = await authenticatedFetch('http://localhost:8080/api/transactions');
         const data = await response.json();
         setTransactions(data);
       } catch (error) {
