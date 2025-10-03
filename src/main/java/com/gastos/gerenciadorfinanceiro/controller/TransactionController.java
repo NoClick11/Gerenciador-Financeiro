@@ -2,10 +2,12 @@ package com.gastos.gerenciadorfinanceiro.controller;
 
 import com.gastos.gerenciadorfinanceiro.dto.CreateTransactionDTO;
 import com.gastos.gerenciadorfinanceiro.model.Transaction;
+import com.gastos.gerenciadorfinanceiro.model.User;
 import com.gastos.gerenciadorfinanceiro.repository.TransactionRepository;
-import com.gastos.gerenciadorfinanceiro.service.AIService;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -16,39 +18,32 @@ import java.util.Optional;
 public class TransactionController {
 
     private final TransactionRepository transactionRepository;
-    private final AIService aiService;
 
-    public TransactionController(TransactionRepository transactionRepository, AIService aiService) {
+    public TransactionController(TransactionRepository transactionRepository) {
         this.transactionRepository = transactionRepository;
-        this.aiService = aiService;
     }
 
     @GetMapping
-    public ResponseEntity<List<Transaction>> getAllTransactions() {
-        List<Transaction> all = transactionRepository.findAll();
-        return ResponseEntity.ok(all);
+    public ResponseEntity<List<Transaction>> getAllTransactions(@AuthenticationPrincipal User user) {
+        // Busca apenas as transações do usuário que está logado
+        List<Transaction> transactions = transactionRepository.findAllByUser(user);
+        return ResponseEntity.ok(transactions);
     }
 
     @PostMapping
-    public ResponseEntity<Transaction> createTransaction(@RequestBody CreateTransactionDTO dto) {
+    public ResponseEntity<Transaction> createTransaction(@Valid @RequestBody CreateTransactionDTO dto, @AuthenticationPrincipal User user) {
         Transaction transaction = new Transaction();
         transaction.setDescription(dto.description());
         transaction.setAmount(dto.amount());
         transaction.setType(dto.type());
+        transaction.setUser(user); // Associa a nova transação ao usuário logado
 
         Transaction savedTransaction = transactionRepository.save(transaction);
-
-        return ResponseEntity.status(org.springframework.http.HttpStatus.CREATED).body(savedTransaction);
-    }
-
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteTransaction(@PathVariable Long id) {
-        transactionRepository.deleteById(id);
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.status(HttpStatus.CREATED).body(savedTransaction);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Transaction> updateTransaction(@PathVariable Long id, @RequestBody CreateTransactionDTO dto) {
+    public ResponseEntity<Transaction> updateTransaction(@PathVariable Long id, @Valid @RequestBody CreateTransactionDTO dto, @AuthenticationPrincipal User user) {
         Optional<Transaction> optionalTransaction = transactionRepository.findById(id);
 
         if (optionalTransaction.isEmpty()) {
@@ -57,20 +52,34 @@ public class TransactionController {
 
         Transaction existingTransaction = optionalTransaction.get();
 
+        if (!existingTransaction.getUser().getId().equals(user.getId())) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build(); // Retorna 403 Proibido
+        }
+
         existingTransaction.setDescription(dto.description());
         existingTransaction.setAmount(dto.amount());
         existingTransaction.setType(dto.type());
 
         Transaction updatedTransaction = transactionRepository.save(existingTransaction);
-
         return ResponseEntity.ok(updatedTransaction);
-
     }
 
-    @GetMapping("/suggestions")
-    public ResponseEntity<String> getSpendingSuggestions() {
-        List<Transaction> all = transactionRepository.findAll();
-        String suggestions = aiService.getSpendingSuggestions(all);
-        return ResponseEntity.ok(suggestions);
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteTransaction(@PathVariable Long id, @AuthenticationPrincipal User user) {
+        // 1. Busca a transação pelo ID
+        Optional<Transaction> optionalTransaction = transactionRepository.findById(id);
+
+        // 2. Verifica se a transação existe
+        if (optionalTransaction.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        Transaction transaction = optionalTransaction.get();
+        if (!transaction.getUser().getId().equals(user.getId())) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build(); // Retorna 403 Proibido
+        }
+
+        transactionRepository.deleteById(id);
+        return ResponseEntity.noContent().build();
     }
 }
