@@ -77,7 +77,7 @@ public class TransactionController {
 
         Transaction transaction = optionalTransaction.get();
         if (!transaction.getUser().getId().equals(user.getId())) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build(); // Retorna 403 Proibido
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
 
         transactionRepository.deleteById(id);
