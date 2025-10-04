@@ -8,28 +8,31 @@ function TransactionListPage() {
   const [transactions, setTransactions] = useState([]);
   const [aiSuggestion, setAiSuggestion] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [currentDate, setCurrentDate] = useState(new Date());
 
-  // Efeito que roda na primeira vez que a página carrega
+  const year = currentDate.getFullYear();
+  const month = currentDate.getMonth() + 1;
+
   useEffect(() => {
-    // Função para buscar as transações
-    const fetchTransactions = async () => {
+    const fetchTransactionsForMonth = async () => {
       try {
         const response = await authenticatedFetch(
-          "http://localhost:8080/api/transactions"
+          `http://localhost:8080/api/transactions/by-month?year=${year}&month=${month}`
         );
         if (response.ok) {
           const data = await response.json();
           setTransactions(data);
         } else {
-          // Se o token for inválido/expirado, o backend retornará um erro
-          console.error("Falha ao autenticar para buscar transações.");
+          setTransactions([]);
         }
       } catch (error) {
-        console.error("Erro ao buscar transações:", error);
+        console.error("Erro ao buscar transações do mês:", error);
       }
     };
+    fetchTransactionsForMonth();
+  }, [year, month]);
 
-    // Função para buscar a última sugestão da IA
+  useEffect(() => {
     const fetchLatestSuggestion = async () => {
       try {
         const response = await authenticatedFetch(
@@ -45,12 +48,24 @@ function TransactionListPage() {
         console.error("Erro ao buscar sugestão salva:", error);
       }
     };
-
-    fetchTransactions();
     fetchLatestSuggestion();
-  }, []); // Array vazio garante que rode apenas uma vez
+  }, []);
 
-  // Função para lidar com a deleção de uma transação
+  const handleTransactionAdded = (newTransaction) => {
+    const transactionDate = new Date(newTransaction.date);
+    if (
+      transactionDate.getFullYear() === year &&
+      transactionDate.getMonth() + 1 === month
+    ) {
+      setTransactions((currentTransactions) => [
+        ...currentTransactions,
+        newTransaction,
+      ]);
+    } else {
+      alert("Transação adicionada com sucesso em outro mês!");
+    }
+  };
+
   const handleDelete = async (id) => {
     try {
       const response = await authenticatedFetch(
@@ -71,18 +86,9 @@ function TransactionListPage() {
     }
   };
 
-  // Função para atualizar a lista após uma nova transação ser adicionada
-  const handleTransactionAdded = (newTransaction) => {
-    setTransactions((currentTransactions) => [
-      ...currentTransactions,
-      newTransaction,
-    ]);
-  };
-
-  // Função para GERAR uma NOVA sugestão
   const handleGenerateSuggestion = async () => {
     setIsLoading(true);
-    setAiSuggestion(null); // Limpa a sugestão antiga da tela
+    setAiSuggestion(null);
     try {
       const response = await authenticatedFetch(
         "http://localhost:8080/api/ai/suggestions",
@@ -93,21 +99,31 @@ function TransactionListPage() {
       if (!response.ok) {
         throw new Error("Falha ao gerar nova sugestão");
       }
-
       const newSuggestion = await response.json();
-      setAiSuggestion(newSuggestion); // Atualiza a tela com a nova sugestão
+      setAiSuggestion(newSuggestion);
     } catch (error) {
       console.error("Erro ao gerar sugestão:", error);
       setAiSuggestion({
         suggestionText:
-          "Desculpe, não foi possível gerar sugestões no momento. Tente novamente mais tarde.",
+          "Desculpe, não foi possível gerar sugestões no momento.",
       });
     } finally {
       setIsLoading(false);
     }
   };
 
-  // --- LÓGICA DE CÁLCULO ---
+  const handlePreviousMonth = () => {
+    setCurrentDate(
+      (prevDate) => new Date(prevDate.getFullYear(), prevDate.getMonth() - 1, 1)
+    );
+  };
+
+  const handleNextMonth = () => {
+    setCurrentDate(
+      (prevDate) => new Date(prevDate.getFullYear(), prevDate.getMonth() + 1, 1)
+    );
+  };
+
   const totalIncome = transactions
     .filter((t) => t.type === "INCOME")
     .reduce((acc, t) => acc + parseFloat(t.amount), 0);
@@ -116,7 +132,6 @@ function TransactionListPage() {
     .reduce((acc, t) => acc + parseFloat(t.amount), 0);
   const balance = totalIncome - totalExpense;
 
-  // --- RENDERIZAÇÃO ---
   return (
     <div
       style={{
@@ -150,6 +165,7 @@ function TransactionListPage() {
       </div>
 
       <TransactionForm onTransactionAdded={handleTransactionAdded} />
+
       <hr style={{ margin: "30px 0" }} />
 
       <div style={{ marginBottom: "30px" }}>
@@ -157,13 +173,11 @@ function TransactionListPage() {
         <button onClick={handleGenerateSuggestion} disabled={isLoading}>
           {isLoading ? "Analisando..." : "Gerar Nova Análise"}
         </button>
-
         {isLoading && (
           <p style={{ color: "#007bff" }}>
             Aguarde, o assistente Gemini está pensando...
           </p>
         )}
-
         {aiSuggestion && !isLoading && (
           <div
             style={{
@@ -201,7 +215,29 @@ function TransactionListPage() {
 
       <hr style={{ margin: "30px 0" }} />
 
-      <h2>Histórico de Transações</h2>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+        }}
+      >
+        <h2>Histórico de Transações</h2>
+        <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+          <button onClick={handlePreviousMonth}>&lt; Mês Anterior</button>
+          <span
+            style={{
+              fontWeight: "bold",
+              minWidth: "70px",
+              textAlign: "center",
+            }}
+          >
+            {String(month).padStart(2, "0")}/{year}
+          </span>
+          <button onClick={handleNextMonth}>Próximo Mês &gt;</button>
+        </div>
+      </div>
+
       <ul style={{ listStyle: "none", padding: 0 }}>
         {transactions.map((transaction) => (
           <li
