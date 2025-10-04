@@ -27,7 +27,6 @@ public class AIController {
         this.transactionRepository = transactionRepository;
     }
 
-    // Endpoint para BUSCAR a última sugestão salva
     @GetMapping("/suggestions")
     public ResponseEntity<AISuggestion> getLatestSuggestion(@AuthenticationPrincipal User user) {
         return aiSuggestionRepository.findTopByUserOrderByCreatedAtDesc(user)
@@ -35,7 +34,6 @@ public class AIController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    // Endpoint para GERAR e SALVAR uma nova sugestão
     @PostMapping("/suggestions")
     public ResponseEntity<AISuggestion> generateNewSuggestion(@AuthenticationPrincipal User user) {
         aiSuggestionRepository.findTopByUserOrderByCreatedAtDesc(user)

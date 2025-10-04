@@ -2,29 +2,58 @@ import { useState, useEffect } from "react";
 import TransactionForm from "../components/TransactionForm";
 import BalanceDisplay from "../components/BalanceDisplay";
 import TransactionChart from "../components/TransactionChart";
-import { authenticatedFetch } from '../services/api';
+import { authenticatedFetch } from "../services/api";
 
 function TransactionListPage() {
   const [transactions, setTransactions] = useState([]);
-  const [suggestion, setSuggestion] = useState("");
+  const [aiSuggestion, setAiSuggestion] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
 
+  // Efeito que roda na primeira vez que a página carrega
   useEffect(() => {
+    // Função para buscar as transações
     const fetchTransactions = async () => {
       try {
-        const response = await authenticatedFetch('http://localhost:8080/api/transactions');
-        const data = await response.json();
-        setTransactions(data);
+        const response = await authenticatedFetch(
+          "http://localhost:8080/api/transactions"
+        );
+        if (response.ok) {
+          const data = await response.json();
+          setTransactions(data);
+        } else {
+          // Se o token for inválido/expirado, o backend retornará um erro
+          console.error("Falha ao autenticar para buscar transações.");
+        }
       } catch (error) {
         console.error("Erro ao buscar transações:", error);
       }
     };
-    fetchTransactions();
-  }, []);
 
+    // Função para buscar a última sugestão da IA
+    const fetchLatestSuggestion = async () => {
+      try {
+        const response = await authenticatedFetch(
+          "http://localhost:8080/api/ai/suggestions"
+        );
+        if (response.ok) {
+          const data = await response.json();
+          setAiSuggestion(data);
+        } else {
+          console.log("Nenhuma sugestão salva encontrada.");
+        }
+      } catch (error) {
+        console.error("Erro ao buscar sugestão salva:", error);
+      }
+    };
+
+    fetchTransactions();
+    fetchLatestSuggestion();
+  }, []); // Array vazio garante que rode apenas uma vez
+
+  // Função para lidar com a deleção de uma transação
   const handleDelete = async (id) => {
     try {
-      const response = await fetch(
+      const response = await authenticatedFetch(
         `http://localhost:8080/api/transactions/${id}`,
         {
           method: "DELETE",
@@ -42,6 +71,7 @@ function TransactionListPage() {
     }
   };
 
+  // Função para atualizar a lista após uma nova transação ser adicionada
   const handleTransactionAdded = (newTransaction) => {
     setTransactions((currentTransactions) => [
       ...currentTransactions,
@@ -49,26 +79,35 @@ function TransactionListPage() {
     ]);
   };
 
-  const handleGetSuggestions = async () => {
+  // Função para GERAR uma NOVA sugestão
+  const handleGenerateSuggestion = async () => {
     setIsLoading(true);
-    setSuggestion("");
+    setAiSuggestion(null); // Limpa a sugestão antiga da tela
     try {
-      const response = await fetch(
-        "http://localhost:8080/api/transactions/suggestions"
+      const response = await authenticatedFetch(
+        "http://localhost:8080/api/ai/suggestions",
+        {
+          method: "POST",
+        }
       );
       if (!response.ok) {
-        throw new Error("Falha ao buscar sugestões da IA");
+        throw new Error("Falha ao gerar nova sugestão");
       }
-      const textResponse = await response.text();
-      setSuggestion(textResponse);
+
+      const newSuggestion = await response.json();
+      setAiSuggestion(newSuggestion); // Atualiza a tela com a nova sugestão
     } catch (error) {
-      console.error("Erro ao buscar sugestões:", error);
-      setSuggestion("Desculpe, não foi possível gerar sugestões no momento.");
+      console.error("Erro ao gerar sugestão:", error);
+      setAiSuggestion({
+        suggestionText:
+          "Desculpe, não foi possível gerar sugestões no momento. Tente novamente mais tarde.",
+      });
     } finally {
       setIsLoading(false);
     }
   };
 
+  // --- LÓGICA DE CÁLCULO ---
   const totalIncome = transactions
     .filter((t) => t.type === "INCOME")
     .reduce((acc, t) => acc + parseFloat(t.amount), 0);
@@ -77,6 +116,7 @@ function TransactionListPage() {
     .reduce((acc, t) => acc + parseFloat(t.amount), 0);
   const balance = totalIncome - totalExpense;
 
+  // --- RENDERIZAÇÃO ---
   return (
     <div
       style={{
@@ -112,20 +152,19 @@ function TransactionListPage() {
       <TransactionForm onTransactionAdded={handleTransactionAdded} />
       <hr style={{ margin: "30px 0" }} />
 
-      {}
       <div style={{ marginBottom: "30px" }}>
         <h2>Análise com IA</h2>
-        <button onClick={handleGetSuggestions} disabled={isLoading}>
-          {isLoading ? "Analisando..." : "Obter Sugestões de Gastos"}
+        <button onClick={handleGenerateSuggestion} disabled={isLoading}>
+          {isLoading ? "Analisando..." : "Gerar Nova Análise"}
         </button>
 
-        {}
         {isLoading && (
           <p style={{ color: "#007bff" }}>
             Aguarde, o assistente Gemini está pensando...
           </p>
         )}
-        {suggestion && !isLoading && (
+
+        {aiSuggestion && !isLoading && (
           <div
             style={{
               marginTop: "15px",
@@ -135,7 +174,12 @@ function TransactionListPage() {
               background: "#f0f8ff",
             }}
           >
-            <h3>Sugestões do Assistente:</h3>
+            <h3>
+              Sugestão do Assistente{" "}
+              {aiSuggestion.createdAt &&
+                `(de ${new Date(aiSuggestion.createdAt).toLocaleString()})`}
+              :
+            </h3>
             <pre
               style={{
                 whiteSpace: "pre-wrap",
@@ -143,10 +187,10 @@ function TransactionListPage() {
                 fontSize: "1em",
               }}
             >
-              {suggestion}
+              {aiSuggestion.suggestionText}
             </pre>
             <button
-              onClick={() => setSuggestion("")}
+              onClick={() => setAiSuggestion(null)}
               style={{ marginTop: "10px" }}
             >
               Limpar
@@ -156,6 +200,7 @@ function TransactionListPage() {
       </div>
 
       <hr style={{ margin: "30px 0" }} />
+
       <h2>Histórico de Transações</h2>
       <ul style={{ listStyle: "none", padding: 0 }}>
         {transactions.map((transaction) => (
