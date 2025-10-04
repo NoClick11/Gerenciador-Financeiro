@@ -12,4 +12,5 @@ import java.util.List;
 public interface TransactionRepository extends JpaRepository<Transaction, Long> {
     List<Transaction> findAllByUser(User user);
     List<Transaction> findAllByUserAndDateBetween(User user, LocalDate startDate, LocalDate endDate);
+    boolean existsByUserAndDescriptionAndDateBetween(User user, String description, LocalDate startDate, LocalDate endDate);
 }
