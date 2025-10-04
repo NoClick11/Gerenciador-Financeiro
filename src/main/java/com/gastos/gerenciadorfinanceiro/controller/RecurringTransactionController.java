@@ -52,4 +52,16 @@ public class RecurringTransactionController {
         repository.delete(recurring);
         return ResponseEntity.noContent().build();
     }
+
+    @DeleteMapping("/by-description")
+    public ResponseEntity<Void> deleteByDescription(@RequestParam String description, @AuthenticationPrincipal User user) {
+        RecurringTransaction recurring = repository.findByUserAndDescriptionIgnoreCase(user, description)
+                .orElse(null);
+
+        if (recurring != null) {
+            repository.delete(recurring);
+        }
+
+        return ResponseEntity.noContent().build();
+    }
 }

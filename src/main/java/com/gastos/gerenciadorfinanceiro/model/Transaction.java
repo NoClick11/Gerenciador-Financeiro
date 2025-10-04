@@ -32,4 +32,7 @@ public class Transaction {
     @JoinColumn(name = "user_id", nullable = false)
     @JsonBackReference("user-transaction")
     private User user;
+
+    @Enumerated(EnumType.STRING)
+    private RecurrenceType recurrenceType;
 }

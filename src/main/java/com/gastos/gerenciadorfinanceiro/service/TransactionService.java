@@ -1,16 +1,12 @@
 package com.gastos.gerenciadorfinanceiro.service;
 
-import com.gastos.gerenciadorfinanceiro.dto.CreateTransactionDTO;
-import com.gastos.gerenciadorfinanceiro.model.RecurrenceType;
 import com.gastos.gerenciadorfinanceiro.model.RecurringTransaction;
 import com.gastos.gerenciadorfinanceiro.model.Transaction;
 import com.gastos.gerenciadorfinanceiro.model.User;
 import com.gastos.gerenciadorfinanceiro.repository.RecurringTransactionRepository;
 import com.gastos.gerenciadorfinanceiro.repository.TransactionRepository;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDate;
 import java.time.temporal.TemporalAdjusters;

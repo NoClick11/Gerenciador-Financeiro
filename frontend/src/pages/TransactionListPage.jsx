@@ -61,27 +61,31 @@ const [transactions, setTransactions] = useState([]);
     }
   };
 
-  const handleDelete = async (transactionToDelete) => {
+    const handleDelete = async (transactionToDelete) => {
+    // Primeiro, verifica se a transação é do tipo recorrente
     if (transactionToDelete.recurrenceType === 'RECURRING') {
+      
       const stopRecurrence = window.confirm(
-        `"${transactionToDelete.description}" é um item recorrente.\n\n- Clique em 'OK' para cancelar a recorrência para os próximos meses.\n- Clique em 'Cancelar' para excluir apenas a transação deste mês.`
+        `"${transactionToDelete.description}" é um item recorrente.\n\n- Clique em 'OK' para Excluir Permanentemente (para este e os próximos meses).\n- Clique em 'Cancelar' para Excluir Apenas Deste Mês.`
       );
 
       if (stopRecurrence) {
-        // --- LÓGICA PARA CANCELAR A RECORRÊNCIA ---
+        // --- LÓGICA PARA EXCLUIR PERMANENTEMENTE ---
         try {
-          const apiUrl = `${import.meta.env.VITE_API_BASE_URL}/api/transactions/${transactionToDelete.id}/cancel-recurrence`;
-          const response = await authenticatedFetch(apiUrl, { method: 'POST' });
+          // 1. Deleta o "modelo" recorrente para que não seja mais gerado
+          const descriptionParam = encodeURIComponent(transactionToDelete.description);
+          const recurringApiUrl = `${import.meta.env.VITE_API_BASE_URL}/api/recurring-transactions/by-description?description=${descriptionParam}`;
+          await authenticatedFetch(recurringApiUrl, { method: 'DELETE' });
 
+          // 2. Deleta a "instância" da transação do mês atual
+          const transactionApiUrl = `${import.meta.env.VITE_API_BASE_URL}/api/transactions/${transactionToDelete.id}`;
+          const response = await authenticatedFetch(transactionApiUrl, { method: 'DELETE' });
+          
           if (response.ok) {
-            const updatedTransaction = await response.json();
-            // Atualiza o item na lista para refletir que não é mais recorrente
-            setTransactions(current =>
-              current.map(t => (t.id === updatedTransaction.id ? updatedTransaction : t))
-            );
+            setTransactions(current => current.filter(t => t.id !== transactionToDelete.id));
             alert("Recorrência cancelada com sucesso!");
           } else {
-            throw new Error("Falha ao cancelar recorrência.");
+            throw new Error("Falha ao deletar a transação deste mês.");
           }
         } catch (error) {
           console.error("Erro ao cancelar recorrência:", error);
