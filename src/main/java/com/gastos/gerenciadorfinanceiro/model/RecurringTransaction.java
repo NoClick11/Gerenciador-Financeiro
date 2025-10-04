@@ -10,12 +10,12 @@ import lombok.Setter;
 import java.math.BigDecimal;
 
 @Entity
-@Table(name = "recurring_expenses")
+@Table(name = "recurring_transactions") // Corrigido para plural
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class RecurringExpense {
+public class RecurringTransaction {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -27,9 +27,11 @@ public class RecurringExpense {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
-    @JsonBackReference
+    @JsonBackReference("user-recurring")
     private User user;
 
     private int dayOfMonth;
 
+    @Enumerated(EnumType.STRING)
+    private TransactionType transactionType;
 }

@@ -29,11 +29,12 @@ public class User implements UserDetails {
     private String password;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonManagedReference
+    @JsonManagedReference("user-transaction")
     private List<Transaction> transactions;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<RecurringExpense> recurringExpenses;
+    @JsonManagedReference("user-recurring")
+    private List<RecurringTransaction> recurringTransactions;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
