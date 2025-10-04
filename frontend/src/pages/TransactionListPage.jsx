@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import TransactionForm from '../components/TransactionForm';
 import BalanceDisplay from '../components/BalanceDisplay';
 import TransactionChart from '../components/TransactionChart';
-import RecurringTransactionModal from '../components/RecurringTransactionModal';
 import { authenticatedFetch } from '../services/api';
 
 function TransactionListPage() {
@@ -11,10 +10,6 @@ const [transactions, setTransactions] = useState([]);
   const [aiSuggestion, setAiSuggestion] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [currentDate, setCurrentDate] = useState(new Date());
-  const [isModalOpen, setIsModalOpen] = useState(false); // 1. A variável é criada aqui
-
-  // 2. CORREÇÃO: O console.log vem DEPOIS
-  console.log("O modal está aberto?", isModalOpen);
 
   // Variáveis derivadas do estado de data
   const year = currentDate.getFullYear();
@@ -157,12 +152,6 @@ const [transactions, setTransactions] = useState([]);
     <div style={{ fontFamily: 'sans-serif', padding: '20px', maxWidth: '800px', margin: 'auto' }}>
       <h1>Gerenciador Financeiro com IA</h1>
 
-      <div style={{ marginBottom: '20px', padding: '10px', background: '#eee', borderRadius: '5px', textAlign: 'center' }}>
-         <button onClick={() => setIsModalOpen(true)}>
-           Gerenciar Itens Recorrentes
-         </button>
-      </div>
-
       <div style={{ display: 'flex', justifyContent: 'center', gap: '50px', alignItems: 'center', flexWrap: 'wrap', marginBottom: '20px', padding: '20px', background: '#f9f9f9', borderRadius: '8px' }}>
         <BalanceDisplay income={totalIncome} expense={totalExpense} balance={balance} />
         <TransactionChart income={totalIncome} expense={totalExpense} />
@@ -215,13 +204,8 @@ const [transactions, setTransactions] = useState([]);
           </li>
         ))}
       </ul>
-
-      <RecurringTransactionModal 
-        isOpen={isModalOpen} 
-        onClose={() => setIsModalOpen(false)} 
-      />
     </div>
-  );
+  );  
 }
 
 export default TransactionListPage;
