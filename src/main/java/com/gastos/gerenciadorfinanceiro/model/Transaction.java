@@ -36,5 +36,5 @@ public class Transaction {
     private User user;
 
     @Enumerated(EnumType.STRING)
-    private ExpenseCategory expenseCategory;
+    private RecurrenceType recurrenceType;
 }

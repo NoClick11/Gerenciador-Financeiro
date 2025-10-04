@@ -32,10 +32,6 @@ public class User implements UserDetails {
     @JsonManagedReference("user-transaction")
     private List<Transaction> transactions;
 
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonManagedReference("user-recurring")
-    private List<RecurringTransaction> recurringTransactions;
-
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return List.of(new SimpleGrantedAuthority("ROLE_USER"));
