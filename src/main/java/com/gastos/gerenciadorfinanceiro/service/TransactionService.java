@@ -94,4 +94,17 @@ public class TransactionService {
         }
         transactionRepository.delete(transaction);
     }
+
+    public Transaction cancelRecurrence(Long id, User user) {
+        Transaction transaction = transactionRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Transação não encontrada"));
+
+        if (!transaction.getUser().getId().equals(user.getId())) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Acesso negado");
+        }
+
+        transaction.setRecurrenceType(RecurrenceType.ONE_TIME);
+
+        return transactionRepository.save(transaction);
+    }
 }
