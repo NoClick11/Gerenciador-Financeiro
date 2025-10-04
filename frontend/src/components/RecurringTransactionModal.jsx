@@ -1,13 +1,16 @@
 import { useState, useEffect } from 'react';
 import { authenticatedFetch } from '../services/api';
 
-// O componente recebe 'isOpen' (para saber se está visível) e 'onClose' (função para se fechar)
 function RecurringTransactionModal({ isOpen, onClose }) {
   const [recurringTransactions, setRecurringTransactions] = useState([]);
 
-  // Este efeito roda sempre que a prop 'isOpen' muda
+  // Estados para o novo formulário
+  const [description, setDescription] = useState('');
+  const [amount, setAmount] = useState('');
+  const [dayOfMonth, setDayOfMonth] = useState(1);
+  const [transactionType, setTransactionType] = useState('EXPENSE');
+
   useEffect(() => {
-    // Só buscamos os dados se o modal estiver sendo aberto
     if (isOpen) {
       const fetchRecurring = async () => {
         try {
@@ -26,14 +29,10 @@ function RecurringTransactionModal({ isOpen, onClose }) {
   }, [isOpen]);
 
   const handleDelete = async (id) => {
-    if (!window.confirm("Tem certeza que deseja deletar este item recorrente?")) {
-      return;
-    }
+    if (!window.confirm("Tem certeza que deseja deletar este item recorrente?")) return;
     try {
       const apiUrl = `${import.meta.env.VITE_API_BASE_URL}/api/recurring-transactions/${id}`;
-      const response = await authenticatedFetch(apiUrl, {
-        method: 'DELETE',
-      });
+      const response = await authenticatedFetch(apiUrl, { method: 'DELETE' });
       if (response.ok) {
         setRecurringTransactions(current => current.filter(item => item.id !== id));
       }
@@ -42,40 +41,80 @@ function RecurringTransactionModal({ isOpen, onClose }) {
     }
   };
 
-  // Se o modal não estiver aberto, não renderiza nada
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    const newRecurring = { description, amount, dayOfMonth: parseInt(dayOfMonth), transactionType };
+    try {
+      const apiUrl = `${import.meta.env.VITE_API_BASE_URL}/api/recurring-transactions`;
+      const response = await authenticatedFetch(apiUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newRecurring),
+      });
+      if (!response.ok) throw new Error("Falha ao criar item recorrente");
+
+      const createdItem = await response.json();
+      setRecurringTransactions(current => [...current, createdItem]);
+
+      setDescription('');
+      setAmount('');
+      setDayOfMonth(1);
+      setTransactionType('EXPENSE');
+    } catch (error) {
+      console.error("Erro ao criar item recorrente:", error);
+    }
+  };
+
   if (!isOpen) {
     return null;
   }
 
-  // JSX para a estrutura do modal
   return (
-    // Fundo do modal
     <div style={modalOverlayStyle}>
-      {/* Conteúdo do modal */}
       <div style={modalContentStyle}>
         <h2>Gerenciar Itens Recorrentes</h2>
-        <button onClick={onClose} style={{ position: 'absolute', top: '10px', right: '10px', cursor: 'pointer' }}>X</button>
+        <button onClick={onClose} style={{ position: 'absolute', top: '10px', right: '10px', cursor: 'pointer', background: 'none', border: 'none', fontSize: '1.5rem' }}>&times;</button>
+        <hr />
+        
+        <form onSubmit={handleSubmit} style={{ marginBottom: '20px', display: 'flex', flexWrap: 'wrap', gap: '10px', alignItems: 'flex-end' }}>
+          <div style={{flex: '2 1 150px'}}>
+            <label>Descrição:</label>
+            <input type="text" placeholder="ex: Salário, Aluguel" value={description} onChange={e => setDescription(e.target.value)} required style={{width: '100%'}}/>
+          </div>
+          <div style={{flex: '1 1 80px'}}>
+            <label>Valor:</label>
+            <input type="number" placeholder="1500.00" value={amount} onChange={e => setAmount(e.target.value)} required step="0.01" style={{width: '100%'}}/>
+          </div>
+          <div style={{flex: '1 1 60px'}}>
+            <label>Dia do Mês:</label>
+            <input type="number" value={dayOfMonth} onChange={e => setDayOfMonth(e.target.value)} required min="1" max="31" style={{width: '100%'}}/>
+          </div>
+          <div style={{flex: '1 1 100px'}}>
+            <label>Tipo:</label>
+            <select value={transactionType} onChange={e => setTransactionType(e.target.value)} style={{width: '100%'}}>
+              <option value="EXPENSE">Saída</option>
+              <option value="INCOME">Entrada</option>
+            </select>
+          </div>
+          <button type="submit">Adicionar</button>
+        </form>
         
         <hr />
         
         <h4>Itens Cadastrados:</h4>
         <ul style={{ listStyle: 'none', padding: 0, maxHeight: '200px', overflowY: 'auto' }}>
           {recurringTransactions.map(item => (
-            <li key={item.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '5px', borderBottom: '1px solid #eee' }}>
+            <li key={item.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 5px', borderBottom: '1px solid #eee' }}>
               <span>{item.description} - R$ {item.amount} (Todo dia {item.dayOfMonth}) - {item.transactionType}</span>
-              <button onClick={() => handleDelete(item.id)}>Deletar</button>
+              <button onClick={() => handleDelete(item.id)} style={{background: 'darkred', color: 'white', border: 'none', borderRadius: '4px'}}>Deletar</button>
             </li>
           ))}
         </ul>
-        
-        {/* O formulário para adicionar novos itens virá aqui */}
-        
       </div>
     </div>
   );
 }
 
-// Estilos básicos para o modal
 const modalOverlayStyle = {
   position: 'fixed',
   top: 0,
@@ -94,7 +133,7 @@ const modalContentStyle = {
   padding: '20px',
   borderRadius: '8px',
   position: 'relative',
-  width: '600px',
+  width: '800px',
   maxWidth: '90%',
   boxShadow: '0 5px 15px rgba(0,0,0,0.3)',
 };
