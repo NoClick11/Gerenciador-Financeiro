@@ -34,4 +34,7 @@ public class Transaction {
     @JoinColumn(name = "user_id")
     @JsonBackReference
     private User user;
+
+    @Enumerated(EnumType.STRING)
+    private ExpenseCategory expenseCategory;
 }
