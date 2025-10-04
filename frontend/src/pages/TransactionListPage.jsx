@@ -2,30 +2,31 @@ import { useState, useEffect } from 'react';
 import TransactionForm from '../components/TransactionForm';
 import BalanceDisplay from '../components/BalanceDisplay';
 import TransactionChart from '../components/TransactionChart';
+import RecurringTransactionModal from '../components/RecurringTransactionModal';
 import { authenticatedFetch } from '../services/api';
-import RecurringTransactionModal from '../components/RecurringTransactionModal'; // 1. IMPORTAR O MODAL
 
 function TransactionListPage() {
   // --- ESTADOS (STATE) ---
-  const [transactions, setTransactions] = useState([]);
+const [transactions, setTransactions] = useState([]);
   const [aiSuggestion, setAiSuggestion] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [currentDate, setCurrentDate] = useState(new Date());
+  const [isModalOpen, setIsModalOpen] = useState(false); // 1. A variável é criada aqui
 
-  // --- NOVO ESTADO PARA CONTROLAR O MODAL ---
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  // 2. CORREÇÃO: O console.log vem DEPOIS
+  console.log("O modal está aberto?", isModalOpen);
 
   // Variáveis derivadas do estado de data
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth() + 1;
 
   // --- EFEITOS (EFFECTS) ---
+  // Efeito para buscar as transações do mês (roda sempre que o mês/ano muda)
   useEffect(() => {
     const fetchTransactionsForMonth = async () => {
       try {
-        const response = await authenticatedFetch(
-          `http://localhost:8080/api/transactions/by-month?year=${year}&month=${month}`
-        );
+        const apiUrl = `${import.meta.env.VITE_API_BASE_URL}/api/transactions/by-month?year=${year}&month=${month}`;
+        const response = await authenticatedFetch(apiUrl);
         if (response.ok) {
           const data = await response.json();
           setTransactions(data);
@@ -39,10 +40,12 @@ function TransactionListPage() {
     fetchTransactionsForMonth();
   }, [year, month]);
 
+  // Efeito para buscar a última sugestão salva (roda apenas uma vez)
   useEffect(() => {
     const fetchLatestSuggestion = async () => {
       try {
-        const response = await authenticatedFetch('http://localhost:8080/api/ai/suggestions');
+        const apiUrl = `${import.meta.env.VITE_API_BASE_URL}/api/ai/suggestions`;
+        const response = await authenticatedFetch(apiUrl);
         if (response.ok) {
           const data = await response.json();
           setAiSuggestion(data);
@@ -66,9 +69,8 @@ function TransactionListPage() {
 
   const handleDelete = async (id) => {
     try {
-      const response = await authenticatedFetch(`http://localhost:8080/api/transactions/${id}`, {
-        method: 'DELETE',
-      });
+      const apiUrl = `${import.meta.env.VITE_API_BASE_URL}/api/transactions/${id}`;
+      const response = await authenticatedFetch(apiUrl, { method: 'DELETE' });
       if (response.ok) {
         setTransactions(currentTransactions =>
           currentTransactions.filter(transaction => transaction.id !== id)
@@ -83,9 +85,8 @@ function TransactionListPage() {
     setIsLoading(true);
     setAiSuggestion(null);
     try {
-      const response = await authenticatedFetch('http://localhost:8080/api/ai/suggestions', {
-        method: 'POST',
-      });
+      const apiUrl = `${import.meta.env.VITE_API_BASE_URL}/api/ai/suggestions`;
+      const response = await authenticatedFetch(apiUrl, { method: 'POST' });
       if (!response.ok) throw new Error('Falha ao gerar nova sugestão');
       const newSuggestion = await response.json();
       setAiSuggestion(newSuggestion);
@@ -115,7 +116,6 @@ function TransactionListPage() {
     <div style={{ fontFamily: 'sans-serif', padding: '20px', maxWidth: '800px', margin: 'auto' }}>
       <h1>Gerenciador Financeiro com IA</h1>
 
-      {/* 2. BOTÃO PARA ABRIR O MODAL */}
       <div style={{ marginBottom: '20px', padding: '10px', background: '#eee', borderRadius: '5px', textAlign: 'center' }}>
          <button onClick={() => setIsModalOpen(true)}>
            Gerenciar Itens Recorrentes
@@ -175,7 +175,6 @@ function TransactionListPage() {
         ))}
       </ul>
 
-      {/* 3. RENDERIZAÇÃO DO MODAL */}
       <RecurringTransactionModal 
         isOpen={isModalOpen} 
         onClose={() => setIsModalOpen(false)} 
