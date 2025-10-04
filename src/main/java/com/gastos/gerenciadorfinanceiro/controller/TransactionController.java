@@ -10,6 +10,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
+import java.time.temporal.TemporalAdjusters;
 import java.util.List;
 import java.util.Optional;
 
@@ -67,10 +69,8 @@ public class TransactionController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteTransaction(@PathVariable Long id, @AuthenticationPrincipal User user) {
-        // 1. Busca a transação pelo ID
         Optional<Transaction> optionalTransaction = transactionRepository.findById(id);
 
-        // 2. Verifica se a transação existe
         if (optionalTransaction.isEmpty()) {
             return ResponseEntity.notFound().build();
         }
@@ -82,5 +82,20 @@ public class TransactionController {
 
         transactionRepository.deleteById(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/by-month")
+    public ResponseEntity<List<Transaction>> searchByMonth(
+            @AuthenticationPrincipal User user,
+            @RequestParam Integer year,
+            @RequestParam Integer month
+    ) {
+        LocalDate startDate = LocalDate.of(year, month, 1);
+
+        LocalDate endDate = startDate.with(TemporalAdjusters.lastDayOfMonth());
+
+        List<Transaction> transactions = transactionRepository.findAllByUserAndDateBetween(user, startDate, endDate);
+
+        return ResponseEntity.ok(transactions);
     }
 }
