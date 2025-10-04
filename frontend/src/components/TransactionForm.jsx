@@ -5,7 +5,7 @@ function TransactionForm({ onTransactionAdded }) {
   const [description, setDescription] = useState('');
   const [amount, setAmount] = useState('');
   const [type, setType] = useState('EXPENSE');
-  const [expenseCategory, setExpenseCategory] = useState('SPORADIC');
+  const [recurrenceType, setRecurrenceType] = useState('ONE_TIME'); 
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -14,15 +14,16 @@ function TransactionForm({ onTransactionAdded }) {
       description,
       amount,
       type,
+      recurrenceType,
     };
-    
-    if (type === 'EXPENSE') {
-      newTransaction.expenseCategory = expenseCategory;
-    }
 
     try {
-      const response = await authenticatedFetch('http://localhost:8080/api/transactions', {
+      const apiUrl = `${import.meta.env.VITE_API_BASE_URL}/api/transactions`;
+      const response = await authenticatedFetch(apiUrl, {
         method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
         body: JSON.stringify(newTransaction),
       });
 
@@ -34,7 +35,7 @@ function TransactionForm({ onTransactionAdded }) {
       setDescription('');
       setAmount('');
       setType('EXPENSE');
-      setExpenseCategory('SPORADIC');
+      setRecurrenceType('ONE_TIME');
 
     } catch (error) {
       console.error("Houve um erro ao enviar o formulário:", error);
@@ -44,13 +45,14 @@ function TransactionForm({ onTransactionAdded }) {
   return (
     <form onSubmit={handleSubmit} style={{ border: '1px solid #ccc', padding: '20px', borderRadius: '8px' }}>
       <h3>Adicionar Nova Transação</h3>
+      {}
       <div>
-        <label>Descrição: </label>
-        <input type="text" value={description} onChange={e => setDescription(e.target.value)} required />
+          <label>Descrição: </label>
+          <input type="text" value={description} onChange={e => setDescription(e.target.value)} required />
       </div>
       <div>
-        <label>Valor (R$): </label>
-        <input type="number" step="0.01" value={amount} onChange={e => setAmount(e.target.value)} required />
+          <label>Valor (R$): </label>
+          <input type="number" step="0.01" value={amount} onChange={e => setAmount(e.target.value)} required />
       </div>
       <div>
         <label>Tipo: </label>
@@ -61,33 +63,13 @@ function TransactionForm({ onTransactionAdded }) {
       </div>
 
       {}
-      {type === 'EXPENSE' && (
-        <div>
-          <label>Categoria da Despesa:</label>
-          <div>
-            <input 
-              type="radio" 
-              id="sporadic" 
-              name="expenseCategory" 
-              value="SPORADIC" 
-              checked={expenseCategory === 'SPORADIC'}
-              onChange={e => setExpenseCategory(e.target.value)}
-            />
-            <label htmlFor="sporadic">Esporádico</label>
-          </div>
-          <div>
-            <input 
-              type="radio" 
-              id="monthly" 
-              name="expenseCategory" 
-              value="MONTHLY" 
-              checked={expenseCategory === 'MONTHLY'}
-              onChange={e => setExpenseCategory(e.target.value)}
-            />
-            <label htmlFor="monthly">Mensal</label>
-          </div>
-        </div>
-      )}
+      <div>
+        <label>Recorrência:</label>
+        <select value={recurrenceType} onChange={e => setRecurrenceType(e.target.value)}>
+          <option value="ONE_TIME">Única</option>
+          <option value="RECURRING">Recorrente</option>
+        </select>
+      </div>
       
       <button type="submit" style={{ marginTop: '10px' }}>Adicionar Transação</button>
     </form>

@@ -57,7 +57,6 @@ const [transactions, setTransactions] = useState([]);
     fetchLatestSuggestion();
   }, []);
 
-  // --- FUNÇÕES DE MANIPULAÇÃO (HANDLERS) ---
   const handleTransactionAdded = (newTransaction) => {
     const [transactionYear, transactionMonth] = newTransaction.date.split('-').map(Number);
     if (transactionYear === year && transactionMonth === month) {
@@ -67,17 +66,59 @@ const [transactions, setTransactions] = useState([]);
     }
   };
 
-  const handleDelete = async (id) => {
-    try {
-      const apiUrl = `${import.meta.env.VITE_API_BASE_URL}/api/transactions/${id}`;
-      const response = await authenticatedFetch(apiUrl, { method: 'DELETE' });
-      if (response.ok) {
-        setTransactions(currentTransactions =>
-          currentTransactions.filter(transaction => transaction.id !== id)
-        );
+  const handleDelete = async (transactionToDelete) => {
+    if (transactionToDelete.recurrenceType === 'RECURRING') {
+      const stopRecurrence = window.confirm(
+        `"${transactionToDelete.description}" é um item recorrente.\n\n- Clique em 'OK' para cancelar a recorrência para os próximos meses.\n- Clique em 'Cancelar' para excluir apenas a transação deste mês.`
+      );
+
+      if (stopRecurrence) {
+        // --- LÓGICA PARA CANCELAR A RECORRÊNCIA ---
+        try {
+          const apiUrl = `${import.meta.env.VITE_API_BASE_URL}/api/transactions/${transactionToDelete.id}/cancel-recurrence`;
+          const response = await authenticatedFetch(apiUrl, { method: 'POST' });
+
+          if (response.ok) {
+            const updatedTransaction = await response.json();
+            // Atualiza o item na lista para refletir que não é mais recorrente
+            setTransactions(current =>
+              current.map(t => (t.id === updatedTransaction.id ? updatedTransaction : t))
+            );
+            alert("Recorrência cancelada com sucesso!");
+          } else {
+            throw new Error("Falha ao cancelar recorrência.");
+          }
+        } catch (error) {
+          console.error("Erro ao cancelar recorrência:", error);
+        }
+
+      } else {
+        // --- LÓGICA PARA EXCLUIR APENAS ESTE MÊS ---
+        try {
+          const apiUrl = `${import.meta.env.VITE_API_BASE_URL}/api/transactions/${transactionToDelete.id}`;
+          const response = await authenticatedFetch(apiUrl, { method: 'DELETE' });
+          if (response.ok) {
+            setTransactions(current => current.filter(t => t.id !== transactionToDelete.id));
+          }
+        } catch (error) {
+          console.error("Erro ao deletar transação:", error);
+        }
       }
-    } catch (error) {
-      console.error("Houve um erro ao deletar a transação:", error);
+
+    } else {
+      // --- LÓGICA PARA ITENS NÃO RECORRENTES (ÚNICOS) ---
+      const isConfirmed = window.confirm("Tem certeza que deseja deletar esta transação?");
+      if (isConfirmed) {
+        try {
+          const apiUrl = `${import.meta.env.VITE_API_BASE_URL}/api/transactions/${transactionToDelete.id}`;
+          const response = await authenticatedFetch(apiUrl, { method: 'DELETE' });
+          if (response.ok) {
+            setTransactions(current => current.filter(t => t.id !== transactionToDelete.id));
+          }
+        } catch (error) {
+          console.error("Erro ao deletar transação:", error);
+        }
+      }
     }
   };
 
@@ -168,7 +209,7 @@ const [transactions, setTransactions] = useState([]);
               <span style={{ color: transaction.type === 'INCOME' ? 'green' : 'red', fontWeight: 'bold', textTransform: 'uppercase' }}> {transaction.type} </span> |
               <strong> R$ {parseFloat(transaction.amount).toFixed(2)}</strong>
             </div>
-            <button onClick={() => handleDelete(transaction.id)} style={{ background: '#ff4d4d', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', padding: '5px 10px' }}>
+            <button onClick={() => handleDelete(transaction)} style={{ background: '#ff4d4d', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', padding: '5px 10px' }}>
               X
             </button>
           </li>
