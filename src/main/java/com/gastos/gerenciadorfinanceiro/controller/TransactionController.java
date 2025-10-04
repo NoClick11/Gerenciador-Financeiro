@@ -38,7 +38,7 @@ public class TransactionController {
         transaction.setAmount(dto.amount());
         transaction.setType(dto.type());
         transaction.setUser(user);
-        transaction.setExpenseCategory(dto.category());
+        transaction.setExpenseCategory(dto.expenseCategory());
 
         Transaction savedTransaction = transactionRepository.save(transaction);
         return ResponseEntity.status(HttpStatus.CREATED).body(savedTransaction);
@@ -61,7 +61,7 @@ public class TransactionController {
         existingTransaction.setDescription(dto.description());
         existingTransaction.setAmount(dto.amount());
         existingTransaction.setType(dto.type());
-        existingTransaction.setExpenseCategory(dto.category());
+        existingTransaction.setExpenseCategory(dto.expenseCategory());
 
         Transaction updatedTransaction = transactionRepository.save(existingTransaction);
         return ResponseEntity.ok(updatedTransaction);

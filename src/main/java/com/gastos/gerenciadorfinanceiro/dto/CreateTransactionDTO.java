@@ -5,6 +5,6 @@ import com.gastos.gerenciadorfinanceiro.model.TransactionType;
 
 import java.math.BigDecimal;
 
-public record CreateTransactionDTO(String description, BigDecimal amount, TransactionType type, ExpenseCategory category) {
+public record CreateTransactionDTO(String description, BigDecimal amount, TransactionType type, ExpenseCategory expenseCategory) {
 
 }
