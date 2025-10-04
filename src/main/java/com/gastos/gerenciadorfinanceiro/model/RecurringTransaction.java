@@ -1,35 +1,40 @@
 package com.gastos.gerenciadorfinanceiro.model;
 
-
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
-import lombok.*;
-import org.hibernate.annotations.CreationTimestamp;
-
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import java.math.BigDecimal;
-import java.time.LocalDate;
 
 @Entity
-@Table(name = "transactions")
+@Table(name = "recurring_transactions")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class Transaction {
+public class RecurringTransaction {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(nullable = false)
     private String description;
+
+    @Column(nullable = false)
     private BigDecimal amount;
-    private LocalDate date;
+
+    @Column(nullable = false)
+    private int dayOfMonth;
 
     @Enumerated(EnumType.STRING)
-    private TransactionType type;
+    @Column(nullable = false)
+    private TransactionType transactionType;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
-    @JsonBackReference("user-transaction")
+    @JsonBackReference("user-recurring")
     private User user;
 }

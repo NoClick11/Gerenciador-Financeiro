@@ -13,6 +13,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -40,32 +41,31 @@ public class TransactionController {
             @RequestParam Integer year,
             @RequestParam Integer month
     ) {
-        List<Transaction> transactions = transactionService.getTransactionsForMonth(user, year, month);
-        return ResponseEntity.ok(transactions);
+        return ResponseEntity.ok(transactionService.getTransactionsForMonth(user, year, month));
     }
 
     @PostMapping
     public ResponseEntity<Transaction> createTransaction(@Valid @RequestBody CreateTransactionDTO dto, @AuthenticationPrincipal User user) {
-        Transaction savedTransaction = transactionService.createTransaction(dto, user);
-        return ResponseEntity.status(HttpStatus.CREATED).body(savedTransaction);
-    }
-
-    @PutMapping("/{id}")
-    public ResponseEntity<Transaction> updateTransaction(@PathVariable Long id, @Valid @RequestBody CreateTransactionDTO dto, @AuthenticationPrincipal User user) {
-        Transaction updatedTransaction = transactionService.updateTransaction(id, dto, user);
-        return ResponseEntity.ok(updatedTransaction);
+        Transaction transaction = new Transaction();
+        transaction.setUser(user);
+        transaction.setDescription(dto.description());
+        transaction.setAmount(dto.amount());
+        transaction.setType(dto.type());
+        transaction.setDate(LocalDate.now());
+        return ResponseEntity.status(HttpStatus.CREATED).body(transactionRepository.save(transaction));
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteTransaction(@PathVariable Long id, @AuthenticationPrincipal User user) {
-        transactionService.deleteTransaction(id, user);
-        return ResponseEntity.noContent().build();
-    }
+        Transaction transaction = transactionRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
 
-    @PostMapping("/{id}/cancel-recurrence")
-    public ResponseEntity<Transaction> cancelRecurrence(@PathVariable Long id, @AuthenticationPrincipal User user) {
-        Transaction updatedTransaction = transactionService.cancelRecurrence(id, user);
-        return ResponseEntity.ok(updatedTransaction);
+        if (!transaction.getUser().getId().equals(user.getId())) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN);
+        }
+
+        transactionRepository.delete(transaction);
+        return ResponseEntity.noContent().build();
     }
 
 }

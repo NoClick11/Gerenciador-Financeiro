@@ -2,8 +2,10 @@ package com.gastos.gerenciadorfinanceiro.service;
 
 import com.gastos.gerenciadorfinanceiro.dto.CreateTransactionDTO;
 import com.gastos.gerenciadorfinanceiro.model.RecurrenceType;
+import com.gastos.gerenciadorfinanceiro.model.RecurringTransaction;
 import com.gastos.gerenciadorfinanceiro.model.Transaction;
 import com.gastos.gerenciadorfinanceiro.model.User;
+import com.gastos.gerenciadorfinanceiro.repository.RecurringTransactionRepository;
 import com.gastos.gerenciadorfinanceiro.repository.TransactionRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -19,92 +21,39 @@ import java.util.List;
 public class TransactionService {
 
     private final TransactionRepository transactionRepository;
+    private final RecurringTransactionRepository recurringTransactionRepository;
 
-    public TransactionService(TransactionRepository transactionRepository) {
+    public TransactionService(TransactionRepository transactionRepository, RecurringTransactionRepository recurringTransactionRepository) {
         this.transactionRepository = transactionRepository;
-    }
-
-    public Transaction createTransaction(CreateTransactionDTO dto, User user) {
-        Transaction transaction = new Transaction();
-        transaction.setUser(user);
-        transaction.setDescription(dto.description());
-        transaction.setAmount(dto.amount());
-        transaction.setType(dto.type());
-        transaction.setRecurrenceType(dto.recurrenceType());
-        transaction.setDate(LocalDate.now());
-
-        return transactionRepository.save(transaction);
+        this.recurringTransactionRepository = recurringTransactionRepository;
     }
 
     public List<Transaction> getTransactionsForMonth(User user, int year, int month) {
-        LocalDate currentMonthStart = LocalDate.of(year, month, 1);
-        LocalDate currentMonthEnd = currentMonthStart.with(TemporalAdjusters.lastDayOfMonth());
+        LocalDate startDate = LocalDate.of(year, month, 1);
+        LocalDate endDate = startDate.with(TemporalAdjusters.lastDayOfMonth());
 
-        LocalDate previousMonthStart = currentMonthStart.minusMonths(1);
-        LocalDate previousMonthEnd = previousMonthStart.with(TemporalAdjusters.lastDayOfMonth());
+        List<RecurringTransaction> recurringModels = recurringTransactionRepository.findAllByUser(user);
 
-        List<Transaction> recurringFromLastMonth = transactionRepository.findAllByUserAndRecurrenceTypeAndDateBetween(
-                user, RecurrenceType.RECURRING, previousMonthStart, previousMonthEnd
-        );
-
-        for (Transaction lastMonthTransaction : recurringFromLastMonth) {
-            boolean alreadyExistsThisMonth = transactionRepository.existsByUserAndDescriptionAndDateBetween(
-                    user, lastMonthTransaction.getDescription(), currentMonthStart, currentMonthEnd
+        for (RecurringTransaction model : recurringModels) {
+            boolean transactionExists = transactionRepository.existsByUserAndDescriptionAndDateBetween(
+                    user, model.getDescription(), startDate, endDate
             );
 
-            if (!alreadyExistsThisMonth) {
-                Transaction newRecurringTransaction = new Transaction();
-                newRecurringTransaction.setUser(user);
-                newRecurringTransaction.setDescription(lastMonthTransaction.getDescription());
-                newRecurringTransaction.setAmount(lastMonthTransaction.getAmount());
-                newRecurringTransaction.setType(lastMonthTransaction.getType());
-                newRecurringTransaction.setRecurrenceType(RecurrenceType.RECURRING);
-
-                newRecurringTransaction.setDate(lastMonthTransaction.getDate().withYear(year).withMonth(month));
-
-                transactionRepository.save(newRecurringTransaction);
+            if (!transactionExists) {
+                Transaction newTransaction = new Transaction();
+                newTransaction.setUser(user);
+                newTransaction.setDescription(model.getDescription());
+                newTransaction.setAmount(model.getAmount());
+                newTransaction.setType(model.getTransactionType());
+                newTransaction.setDate(LocalDate.of(year, month, model.getDayOfMonth()));
+                transactionRepository.save(newTransaction);
             }
         }
-
-        return transactionRepository.findAllByUserAndDateBetween(user, currentMonthStart, currentMonthEnd);
+        return transactionRepository.findAllByUserAndDateBetween(user, startDate, endDate);
     }
 
     public List<Transaction> findAllByUser(User user) {
         return transactionRepository.findAllByUser(user);
     }
 
-    public Transaction updateTransaction(Long id, CreateTransactionDTO dto, User user) {
-        Transaction transaction = transactionRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Transação não encontrada"));
-        if (!transaction.getUser().getId().equals(user.getId())) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Acesso negado");
-        }
-        transaction.setDescription(dto.description());
-        transaction.setAmount(dto.amount());
-        transaction.setType(dto.type());
-        transaction.setRecurrenceType(dto.recurrenceType());
-        return transactionRepository.save(transaction);
-    }
-
-    public void deleteTransaction(Long id, User user) {
-        Transaction transaction = transactionRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Transação não encontrada"));
-        if (!transaction.getUser().getId().equals(user.getId())) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Acesso negado");
-        }
-        transactionRepository.delete(transaction);
-    }
-
-    public Transaction cancelRecurrence(Long id, User user) {
-        Transaction transaction = transactionRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Transação não encontrada"));
-
-        if (!transaction.getUser().getId().equals(user.getId())) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Acesso negado");
-        }
-
-        transaction.setRecurrenceType(RecurrenceType.ONE_TIME);
-
-        return transactionRepository.save(transaction);
-    }
 }
