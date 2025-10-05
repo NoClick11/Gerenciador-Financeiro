@@ -11,13 +11,17 @@ function App() {
     console.log("Usuário deslogado, token removido.");
     
     navigate('/login');
+    
+    window.location.reload();
   };
 
   return (
-    <div>
-      <nav style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px', background: '#eee', padding: '10px' }}>
+    <div className="main-container">
+      {}
+      <nav className="navbar">
         <div>
-          <Link to="/" style={{ marginRight: '10px' }}>Home</Link>
+          {}
+          {token && <Link to="/">Dashboard</Link>}
         </div>
         <div>
           {}
@@ -33,6 +37,7 @@ function App() {
       </nav>
 
       <main>
+        {}
         <Outlet />
       </main>
     </div>

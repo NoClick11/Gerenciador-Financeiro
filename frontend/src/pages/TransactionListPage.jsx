@@ -151,7 +151,6 @@ const [transactions, setTransactions] = useState([]);
   const totalExpense = transactions.filter(t => t.type === 'EXPENSE').reduce((acc, t) => acc + parseFloat(t.amount), 0);
   const balance = totalIncome - totalExpense;
 
-  // --- RENDERIZAÇÃO (JSX) ---
   return (
     <div style={{ fontFamily: 'sans-serif', padding: '20px', maxWidth: '800px', margin: 'auto' }}>
       <h1>Gerenciador Financeiro com IA</h1>
