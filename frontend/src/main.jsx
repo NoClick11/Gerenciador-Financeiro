@@ -1,12 +1,12 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
-import ProtectedRoute from './components/ProtectedRoute';
 
 import App from './App.jsx';
 import TransactionListPage from './pages/TransactionListPage.jsx';
 import LoginPage from './pages/LoginPage.jsx';
 import RegisterPage from './pages/RegisterPage.jsx';
+import ProtectedRoute from './components/ProtectedRoute.jsx';
 
 import './index.css';
 
@@ -24,7 +24,7 @@ const router = createBrowserRouter([
         element: <RegisterPage />,
       },
       {
-        element: <ProtectedRoute />, 
+        element: <ProtectedRoute />,
         children: [
           {
             path: '/',
