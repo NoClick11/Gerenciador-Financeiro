@@ -32,7 +32,7 @@ public class AIService {
         promptBuilder.append("Lista de Transações:\n");
         for (Transaction t : transactions) {
             String type = t.getType().equals(TransactionType.INCOME) ? "ENTRADA" : "SAÍDA";
-            promptBuilder.append(String.format("- %s: R$ %.2f - %s\n", type, t.getAmount(), t.getDescription()));
+            promptBuilder.append(String.format("- Data: %s, Tipo: %s, Valor: R$ %.2f, Descrição: %s\n", t.getDate(), type, t.getAmount(), t.getDescription()));
         }
         promptBuilder.append("\nSugestões:");
 

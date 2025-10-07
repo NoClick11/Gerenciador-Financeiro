@@ -62,6 +62,11 @@ public class TransactionService {
         LocalDate startDate = LocalDate.of(year, month, 1);
         LocalDate endDate = startDate.with(TemporalAdjusters.lastDayOfMonth());
 
+        LocalDate today = LocalDate.now();
+        if (startDate.isBefore(today.withDayOfMonth(1))) {
+            return transactionRepository.findAllByUserAndDateBetween(user, startDate, endDate);
+        }
+
         List<RecurringTransaction> recurringModels = recurringTransactionRepository.findAllByUser(user);
 
         for (RecurringTransaction model : recurringModels) {
