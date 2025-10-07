@@ -13,6 +13,8 @@ function App() {
   const [aiSuggestion, setAiSuggestion] = useState(null);
   const [isLoadingAI, setIsLoadingAI] = useState(false);
 
+  const [currentUser, setCurrentUser] = useState(null);
+
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth() + 1;
   const token = localStorage.getItem('jwt-token');
@@ -23,7 +25,7 @@ function App() {
       return;
     }
 
-    const fetchTransactionsForMonth = async () => {
+    const fetchInitialData = async () => {
       try {
         const apiUrl = `${import.meta.env.VITE_API_BASE_URL}/api/transactions/by-month?year=${year}&month=${month}`;
         const response = await authenticatedFetch(apiUrl);
@@ -35,8 +37,14 @@ function App() {
       } catch (error) {
         console.error("Erro ao buscar transações:", error);
       }
+      try {
+        const userApiUrl = `${import.meta.env.VITE_API_BASE_URL}/api/users/me`;
+        const response = await authenticatedFetch(userApiUrl);
+        if (response.ok) setCurrentUser(await response.json());
+      } catch (error) { console.error("Erro ao buscar dados do usuário:", error); }
     };
-    fetchTransactionsForMonth();
+
+    fetchInitialData();
   }, [year, month, navigate, token]);
 
   const handleTransactionAdded = (newTransaction) => {
@@ -131,7 +139,7 @@ function App() {
 
       <main>
         {/* AQUI ESTÁ A CORREÇÃO: A propriedade 'context' passando todos os dados */}
-        <Outlet context={{ transactions, handleTransactionAdded, handleDelete, totalIncome, totalExpense, currentDate, handlePreviousMonth, handleNextMonth, aiSuggestion, isLoadingAI, handleGenerateSuggestion, setAiSuggestion }} />
+        <Outlet context={{ transactions, handleTransactionAdded, handleDelete, totalIncome, totalExpense, currentDate, handlePreviousMonth, handleNextMonth, aiSuggestion, isLoadingAI, handleGenerateSuggestion, setAiSuggestion, currentUser }} />
       </main>
     </div>
   );

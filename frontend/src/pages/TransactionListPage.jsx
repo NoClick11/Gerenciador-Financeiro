@@ -19,10 +19,20 @@ function TransactionListPage() {
     isLoadingAI,
     handleGenerateSuggestion,
     setAiSuggestion,
+    currentUser
   } = useOutletContext();
 
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth() + 1;
+
+  let canNavigateBack = false;
+  if (currentUser && currentUser.createdAt) {
+    const registrationDate = new Date(currentUser.createdAt);
+    const registrationYear = registrationDate.getFullYear();
+    const registrationMonth = registrationDate.getMonth() + 1;
+
+    canNavigateBack = year > registrationYear || (year === registrationYear && month > registrationMonth);
+  }
 
   return (
     <div>
@@ -99,7 +109,9 @@ function TransactionListPage() {
       >
         <h2>Histórico de Transações</h2>
         <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
-          <button onClick={handlePreviousMonth}>&lt; Mês Anterior</button>
+          <button onClick={handlePreviousMonth} disabled={!canNavigateBack}>
+            &lt; Mês Anterior
+          </button>
           <span
             style={{
               fontWeight: "bold",
