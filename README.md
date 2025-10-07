@@ -102,7 +102,7 @@ A documentação completa e interativa dos endpoints do backend, gerada pelo Swa
 ➡️ http://localhost:8080/swagger-ui.html
 
 
-LinkedIn: https://www.linkedin.com/in/seu-usuario/
+LinkedIn: https://www.linkedin.com/in/manuel-bahamonde-372969374
 
 GitHub: https://github.com/NoClick11
 
