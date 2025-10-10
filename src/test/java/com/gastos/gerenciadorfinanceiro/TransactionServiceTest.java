@@ -5,7 +5,6 @@ import com.gastos.gerenciadorfinanceiro.model.*;
 import com.gastos.gerenciadorfinanceiro.repository.RecurringTransactionRepository;
 import com.gastos.gerenciadorfinanceiro.repository.TransactionRepository;
 import com.gastos.gerenciadorfinanceiro.service.TransactionService  ;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -17,10 +16,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.temporal.TemporalAdjusters;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
-import static com.gastos.gerenciadorfinanceiro.model.RecurrenceType.ONE_TIME;
-import static com.gastos.gerenciadorfinanceiro.model.TransactionType.INCOME;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
@@ -40,7 +41,6 @@ class TransactionServiceTest {
 
     @BeforeEach
     void setUp() {
-
     }
 
     @Test
@@ -148,5 +148,72 @@ class TransactionServiceTest {
         });
 
         assertEquals(HttpStatus.FORBIDDEN, exception.getStatusCode());
+    }
+
+    @Test
+    @DisplayName("Deve retornar apenas transações existentes para um mês passado sem criar novas")
+    void getTransactionsForMonth_whenMonthIsInThePast_shouldOnlyFetchExistingTransactions() {
+        User user = new User();
+        int year = 2023;
+        int month = 10;
+
+        List<Transaction> transactions = new ArrayList<>();
+
+        Transaction transaction = new Transaction();
+        Transaction transaction1 = new Transaction();
+
+        transactions.add(transaction1);
+        transactions.add(transaction);
+
+        when(transactionRepository.findAllByUserAndDateBetween(any(User.class), any(LocalDate.class), any(LocalDate.class))).thenReturn(transactions);
+
+        List<Transaction> transactionMonth = transactionService.getTransactionsForMonth(user, year, month);
+
+        assertNotNull(transactionMonth);
+        assertEquals(transactionMonth.size(), transactions.size());
+
+        verify(transactionRepository, never()).save(any());
+        verify(transactionRepository, times(1)).findAllByUserAndDateBetween(any(User.class), any(LocalDate.class), any(LocalDate.class));
+    }
+
+    @Test
+    @DisplayName("Deve criar transações recorrentes faltantes para o mês atual")
+    void getTransactionsForMonth_whenMonthIsCurrentAndRecurringIsMissing_shouldCreateAndReturnIt() {
+        // ARRANGE
+        User user = new User();
+        user.setId(1L);
+        int year = 2025;
+        int month = 10;
+        LocalDate startDate = LocalDate.of(year, month, 1);
+        LocalDate endDate = startDate.with(TemporalAdjusters.lastDayOfMonth());
+
+        RecurringTransaction recurringAluguel = new RecurringTransaction(1L, "Aluguel", new BigDecimal("1500.00"), 5, TransactionType.EXPENSE, user);
+        List<RecurringTransaction> recurringList = List.of(recurringAluguel);
+
+        when(recurringTransactionRepository.findAllByUser(user)).thenReturn(recurringList);
+
+        when(transactionRepository.existsByUserAndDescriptionIgnoreCaseAndDateBetween(user, "Aluguel", startDate, endDate))
+                .thenReturn(false);
+
+        when(transactionRepository.save(any(Transaction.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+
+        Transaction aluguelCriado = new Transaction();
+        aluguelCriado.setDescription("Aluguel");
+        aluguelCriado.setUser(user);
+        aluguelCriado.setAmount(new BigDecimal("1500.00"));
+        when(transactionRepository.findAllByUserAndDateBetween(user, startDate, endDate))
+                .thenReturn(List.of(aluguelCriado));
+
+        List<Transaction> result = transactionService.getTransactionsForMonth(user, year, month);
+
+        assertNotNull(result, "A lista de resultados não deveria ser nula.");
+        assertEquals(1, result.size(), "A lista de resultados deveria conter 1 transação.");
+        assertEquals("Aluguel", result.get(0).getDescription(), "A descrição da transação retornada está incorreta.");
+
+        verify(recurringTransactionRepository, times(1)).findAllByUser(user);
+        verify(transactionRepository, times(1)).existsByUserAndDescriptionIgnoreCaseAndDateBetween(user, "Aluguel", startDate, endDate);
+        verify(transactionRepository, times(1)).save(any(Transaction.class));
+        verify(transactionRepository, times(1)).findAllByUserAndDateBetween(user, startDate, endDate);
     }
 }
