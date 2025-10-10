@@ -90,4 +90,24 @@ class TransactionServiceTest {
         verify(recurringTransactionRepository, times(1)).save(any(RecurringTransaction.class));
     }
 
+    @Test
+    @DisplayName("Deve deletar a transação com sucesso quando ela pertence ao usuário")
+    void deleteTransaction_whenTransactionExistsAndBelongsToUser_shouldDeleteSuccessfully() {
+        User user = new User();
+        user.setId(1L);
+
+        Transaction transaction = new Transaction();
+        transaction.setId(99L);
+        transaction.setUser(user);
+
+        when(transactionRepository.findById(99L)).thenReturn(Optional.of(transaction));
+        doNothing().when(transactionRepository).delete(any(Transaction.class));
+
+
+        transactionService.deleteTransaction(99L, user);
+
+
+        verify(transactionRepository, times(1)).findById(99L);
+        verify(transactionRepository, times(1)).delete(transaction);
+    }
 }
