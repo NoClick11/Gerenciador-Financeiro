@@ -24,6 +24,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.List;
 
 @SpringBootTest
@@ -200,5 +201,39 @@ public class TransactionControllerIntegrationTest {
         mockMvc.perform(delete("/api/transactions/{id}", savedTransactionId)
                 .header("Authorization", "Bearer " + token))
                 .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @DisplayName("Deve retornar 200 OK e as transações do mês especificado")
+    void getTransactionsByMonth_whenMonthIsSpecified_shouldReturnFilteredTransactionList() throws Exception {
+        User user = new User();
+
+        user.setUsername("username");
+        user.setPassword("password");
+
+        userRepository.save(user);
+
+        String token = jwtService.generateToken(user);
+
+        Transaction transaction1 = new Transaction();
+        Transaction transaction2 = new Transaction();
+        Transaction transaction3 = new Transaction();
+
+        transaction1.setDate(LocalDate.of(2025, 10, 15));
+        transaction2.setDate(LocalDate.of(2025, 10, 20));
+        transaction3.setDate(LocalDate.of(2025, 9, 5));
+
+        transaction1.setUser(user);
+        transaction2.setUser(user);
+        transaction3.setUser(user);
+
+        transactionRepository.saveAll(List.of(transaction1, transaction2, transaction3));
+
+        mockMvc.perform(get("/api/transactions/by-month")
+                        .param("year", "2025")
+                        .param("month", "10")
+                .header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.size()").value(2));
     }
 }
