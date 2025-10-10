@@ -13,6 +13,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.math.BigDecimal;
 import java.util.Optional;
@@ -109,5 +111,42 @@ class TransactionServiceTest {
 
         verify(transactionRepository, times(1)).findById(99L);
         verify(transactionRepository, times(1)).delete(transaction);
+    }
+
+    @Test
+    @DisplayName("Deve lançar exceção ao tentar deletar transação inexistente")
+    void deleteTransaction_whenTransactionNotFound_shouldThrowException() {
+        User user = new User();
+        user.setId(1L);
+        Long nonExistentId = 123L;
+
+        when(transactionRepository.findById(nonExistentId)).thenReturn(Optional.empty());
+
+        ResponseStatusException exception = assertThrows(ResponseStatusException.class, () -> {
+            transactionService.deleteTransaction(nonExistentId, user);
+        });
+
+        assertEquals(HttpStatus.NOT_FOUND, exception.getStatusCode());
+    }
+
+    @Test
+    @DisplayName("Deve lançar exceção ao tentar deletar transação de outro usuário")
+    void deleteTransaction_whenUserIsNotOwner_shouldThrowForbiddenException() {
+        User transactionOwner =  new User();
+        User attackerUser = new User();
+        transactionOwner.setId(1L);
+        attackerUser.setId(2L);
+
+        Transaction transaction = new Transaction();
+        transaction.setId(99L);
+        transaction.setUser(transactionOwner);
+
+        when(transactionRepository.findById(99L)).thenReturn(Optional.of(transaction));
+
+        ResponseStatusException exception = assertThrows(ResponseStatusException.class, () -> {
+            transactionService.deleteTransaction(99L, attackerUser);
+        });
+
+        assertEquals(HttpStatus.FORBIDDEN, exception.getStatusCode());
     }
 }
