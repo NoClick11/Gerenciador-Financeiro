@@ -1,10 +1,9 @@
-package com.gastos.gerenciadorfinanceiro;
+package com.gastos.gerenciadorfinanceiro.service;
 
 import com.gastos.gerenciadorfinanceiro.dto.CreateTransactionDTO;
 import com.gastos.gerenciadorfinanceiro.model.*;
 import com.gastos.gerenciadorfinanceiro.repository.RecurringTransactionRepository;
 import com.gastos.gerenciadorfinanceiro.repository.TransactionRepository;
-import com.gastos.gerenciadorfinanceiro.service.TransactionService  ;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
