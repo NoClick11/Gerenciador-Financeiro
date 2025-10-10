@@ -2,6 +2,8 @@
 
 ![Java](https://img.shields.io/badge/Java-21-blue.svg) ![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.5.6-brightgreen.svg) ![React](https://img.shields.io/badge/React-18-blue.svg) ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15-blue.svg) ![Docker](https://img.shields.io/badge/Docker-blue.svg)
 
+![Java CI with Maven](https://github.com/NoClick11/Gerenciador-Financeiro/actions/workflows/ci.yml/badge.svg)
+
 API RESTful e aplicação Front-end (SPA) desenvolvidas em Java com Spring Boot e React para um gerenciador financeiro pessoal. O sistema permite o controle de transações, automação de lançamentos recorrentes e fornece insights financeiros gerados por Inteligência Artificial através da API do Google Gemini.
 
 Este projeto foi construído como uma peça de portfólio para demonstrar habilidades em desenvolvimento full-stack, arquitetura de software, segurança de APIs e integração com serviços externos, visando uma oportunidade de estágio na área de desenvolvimento de software.
