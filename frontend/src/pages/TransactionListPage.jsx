@@ -19,7 +19,7 @@ function TransactionListPage() {
     isLoadingAI,
     handleGenerateSuggestion,
     setAiSuggestion,
-    currentUser
+    currentUser,
   } = useOutletContext();
 
   const year = currentDate.getFullYear();
@@ -31,66 +31,42 @@ function TransactionListPage() {
     const registrationYear = registrationDate.getFullYear();
     const registrationMonth = registrationDate.getMonth() + 1;
 
-    canNavigateBack = year > registrationYear || (year === registrationYear && month > registrationMonth);
+    canNavigateBack =
+      year > registrationYear ||
+      (year === registrationYear && month > registrationMonth);
   }
 
-  return (
+return (
     <div>
       {}
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "center",
-          gap: "50px",
-          alignItems: "center",
-          flexWrap: "wrap",
-          marginBottom: "20px",
-          padding: "20px",
-          background: "#f9f9f9",
-          borderRadius: "8px",
-        }}
-      >
+      <div className="transaction-list-page-top-section">
         <TransactionChart income={totalIncome} expense={totalExpense} />
       </div>
 
       <TransactionForm onTransactionAdded={handleTransactionAdded} />
-      <hr style={{ margin: "30px 0" }} />
+      <hr className="page-divider" /> {}
 
-      <div style={{ marginBottom: "30px" }}>
+      {}
+      <div className="ai-suggestion-section">
         <h2>Análise com IA</h2>
         <button onClick={handleGenerateSuggestion} disabled={isLoadingAI}>
           {isLoadingAI ? "Analisando..." : "Gerar Nova Análise"}
         </button>
-        {isLoadingAI && <p style={{ color: "#007bff" }}>Aguarde...</p>}
+        {isLoadingAI && <p className="ai-loading-message">Aguarde...</p>} {}
         {aiSuggestion && !isLoadingAI && (
-          <div
-            style={{
-              marginTop: "15px",
-              padding: "15px",
-              border: "1px solid #007bff",
-              borderRadius: "5px",
-              background: "#f0f8ff",
-            }}
-          >
+          <div className="ai-suggestion-box"> {}
             <h3>
               Sugestão do Assistente{" "}
               {aiSuggestion.createdAt &&
                 `(de ${new Date(aiSuggestion.createdAt).toLocaleString()})`}
               :
             </h3>
-            <pre
-              style={{
-                whiteSpace: "pre-wrap",
-                fontFamily: "inherit",
-                fontSize: "1em",
-              }}
-            >
+            <pre className="ai-suggestion-text"> {}
               {aiSuggestion.suggestionText}
             </pre>
-            {}
             <button
+              className="ai-suggestion-clear-button" 
               onClick={() => setAiSuggestion(null)}
-              style={{ marginTop: "10px" }}
             >
               Limpar
             </button>
@@ -98,27 +74,17 @@ function TransactionListPage() {
         )}
       </div>
 
-      <hr style={{ margin: "30px 0" }} />
+      <hr className="page-divider" /> {}
 
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-        }}
-      >
+      {}
+      <div className="transaction-history-header"> {}
         <h2>Histórico de Transações</h2>
-        <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+        {}
+        <div className="transaction-history-nav"> {}
           <button onClick={handlePreviousMonth} disabled={!canNavigateBack}>
             &lt; Mês Anterior
           </button>
-          <span
-            style={{
-              fontWeight: "bold",
-              minWidth: "70px",
-              textAlign: "center",
-            }}
-          >
+          <span className="transaction-history-date"> {}
             {String(month).padStart(2, "0")}/{year}
           </span>
           <button
@@ -129,15 +95,15 @@ function TransactionListPage() {
           </button>
         </div>
       </div>
+
       {}
       {transactions.length === 0 && (
-        <div style={{ textAlign: "center", padding: "20px", color: "#888" }}>
+        <div className="no-transactions-message"> {}
           <p>Nenhuma transação encontrada para este mês.</p>
         </div>
       )}
 
       {}
-      {transactions.length > 0 && <ul className="transaction-list">{}</ul>}
       <ul className="transaction-list">
         {transactions.map((transaction) => (
           <li
@@ -163,5 +129,4 @@ function TransactionListPage() {
     </div>
   );
 }
-
 export default TransactionListPage;

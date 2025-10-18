@@ -46,7 +46,7 @@ function LoginPage() {
   };
 
   return (
-    <div style={{ maxWidth: '400px', margin: 'auto', padding: '20px' }}>
+    <div className="auth-container">
       <h2>Login</h2>
       <form onSubmit={handleSubmit}>
         <div style={{ marginBottom: '10px' }}>

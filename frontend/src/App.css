@@ -1,3 +1,78 @@
+/* =========================================== */
+/* ===          VARIÁVEIS GLOBAIS          === */
+/* =========================================== */
+:root {
+  --primary-color: #0d2c54;
+  --accent-color: #007bff;
+  --background-color: #f8f9fa;
+  --surface-color: #ffffff;
+  --text-color: #212529;
+  --border-color: #dee2e6;
+  --success-color: #198754;
+  --danger-color: #dc3545;
+}
+
+/* =========================================== */
+/* ===          ESTILOS GLOBAIS            === */
+/* =========================================== */
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen",
+    "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue",
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: var(--background-color);
+  color: var(--text-color);
+}
+
+button {
+  padding: 10px 15px;
+  background-color: var(--accent-color);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background-color 0.2s;
+}
+
+button:hover {
+  background-color: var(--primary-color);
+}
+
+button:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+input,
+select {
+  padding: 10px;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  font-size: 1em;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: bold;
+  font-size: 0.9em;
+}
+
+hr.page-divider {
+  /* Classe específica para os <hr> */
+  margin: 30px 0;
+  border: none;
+  border-top: 1px solid var(--border-color);
+}
+
+/* =========================================== */
+/* ===         CONTAINERS PRINCIPAIS       === */
+/* =========================================== */
 .main-container {
   max-width: 900px;
   margin: 40px auto;
@@ -7,6 +82,18 @@
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
+.auth-container {
+  max-width: 400px;
+  margin: 40px auto;
+  padding: 20px;
+  background-color: var(--surface-color);
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+/* =========================================== */
+/* ===              NAVBAR                 === */
+/* =========================================== */
 .navbar {
   display: flex;
   justify-content: space-between;
@@ -30,45 +117,75 @@
   opacity: 0.8;
 }
 
-button {
-  padding: 10px 15px;
-  background-color: var(--accent-color);
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-weight: bold;
-  transition: background-color 0.2s;
+/* =========================================== */
+/* ===      ESTILOS TransactionListPage    === */
+/* =========================================== */
+
+.transaction-list-page-top-section {
+  display: flex;
+  justify-content: center;
+  gap: 50px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+  padding: 20px;
+  background: #f9f9f9;
+  border-radius: 8px;
 }
 
-button:hover {
-  background-color: var(--primary-color);
+.ai-suggestion-section {
+  margin-bottom: 30px;
 }
 
-button:disabled {
-  background-color: #ccc;
-  cursor: not-allowed;
+.ai-loading-message {
+  color: var(--accent-color);
 }
 
-input, select {
-  padding: 10px;
-  border: 1px solid var(--border-color);
-  border-radius: 4px;
+.ai-suggestion-box {
+  margin-top: 15px;
+  padding: 15px;
+  border: 1px solid var(--accent-color);
+  border-radius: 5px;
+  background: #f0f8ff;
+}
+
+.ai-suggestion-text {
+  white-space: pre-wrap;
+  font-family: inherit;
   font-size: 1em;
-  width: 100%;
-  box-sizing: border-box;
+  margin-top: 10px;
+  margin-bottom: 10px;
 }
 
-label {
-  display: block;
-  margin-bottom: 5px;
+.ai-suggestion-clear-button {
+  margin-top: 10px;
+}
+
+.transaction-history-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.transaction-history-nav {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.transaction-history-date {
   font-weight: bold;
-  font-size: 0.9em;
+  min-width: 70px;
+  text-align: center;
 }
 
-hr {
-  border: none;
-  border-top: 1px solid var(--border-color);
+.no-transactions-message {
+  text-align: center;
+  padding: 20px;
+  color: #888;
 }
 
 .transaction-list {
@@ -80,7 +197,7 @@ hr {
 .transaction-item {
   background: var(--surface-color);
   border: 1px solid var(--border-color);
-  border-left-width: 5px; 
+  border-left-width: 5px;
   border-radius: 5px;
   padding: 15px;
   margin-bottom: 10px;
@@ -88,19 +205,26 @@ hr {
   justify-content: space-between;
   align-items: center;
   transition: box-shadow 0.2s ease-in-out;
+  flex-wrap: wrap;
+  gap: 10px;
 }
 
 .transaction-item:hover {
-  box-shadow: 0 4px 8px rgba(0,0,0,0.06);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.06);
 }
 
 .transaction-item--income {
-  border-left-color: var(--success-color); 
+  border-left-color: var(--success-color);
 }
-
+.transaction-item--income strong {
+  color: var(--success-color);
+}
 
 .transaction-item--expense {
   border-left-color: var(--danger-color);
+}
+.transaction-item--expense strong {
+  color: var(--danger-color);
 }
 
 .transaction-item-details {
@@ -114,16 +238,107 @@ hr {
   background-color: var(--danger-color);
   padding: 5px 10px;
   font-size: 0.8em;
+  margin-left: auto;
 }
 
 .transaction-item button:hover {
   background-color: #a71d2a;
 }
 
-.transaction-item--income strong {
-  color: var(--success-color);
+/* =========================== */
+/* === ESTILOS RESPONSIVOS === */
+/* =========================== */
+
+@media (max-width: 768px) {
+  .main-container {
+    max-width: 95%;
+    padding: 15px;
+    margin: 20px auto;
+  }
+
+  .transaction-list-page-top-section {
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .navbar {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 15px;
+    padding: 15px;
+  }
 }
 
-.transaction-item--expense strong {
-  color: var(--danger-color);
+@media (max-width: 480px) {
+  .navbar {
+    flex-wrap: wrap;
+    flex-direction: column;
+    align-items: center;
+    padding: 15px;
+    text-align: center;
+  }
+
+  .navbar > * {
+    margin-bottom: 15px;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+
+  .navbar > *:last-child {
+    margin-bottom: 0;
+  }
+
+  .auth-container {
+    max-width: 90%;
+    margin: 20px auto;
+    padding: 15px;
+    box-shadow: none;
+  }
+
+  button,
+  input,
+  select {
+    font-size: 1rem;
+    padding: 12px;
+  }
+
+  .transaction-history-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  .transaction-history-nav {
+    flex-direction: row;
+    width: 100%;
+    justify-content: space-between;
+  }
+  .transaction-history-date {
+    min-width: unset;
+  }
+
+  .transaction-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 5px;
+  }
+  .transaction-item button {
+    margin-top: 10px;
+    align-self: flex-end;
+    margin-left: 0;
+  }
+  .transaction-item-details {
+    gap: 8px;
+  }
+
+  .ai-suggestion-section button {
+    width: auto;
+    max-width: 100%;
+  }
+  .ai-suggestion-box {
+    padding: 10px;
+  }
+
 }

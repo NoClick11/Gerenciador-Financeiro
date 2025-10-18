@@ -46,7 +46,7 @@ function RegisterPage() {
   };
 
   return (
-    <div style={{ maxWidth: '400px', margin: 'auto', padding: '20px' }}>
+    <div className="auth-container">
       <h2>Criar Conta</h2>
 
       {}
