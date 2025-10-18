@@ -6,10 +6,10 @@ function LoginPage() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const apiUrl = `${import.meta.env.VITE_API_BASE_URL}/api/auth/login`;
   
 
   const navigate = useNavigate();
-
 
   const handleSubmit = async (event) => {
 
@@ -18,7 +18,8 @@ function LoginPage() {
 
     try {
 
-      const response = await fetch('http://localhost:8080/api/auth/login', {
+      
+      const response = await fetch(apiUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
